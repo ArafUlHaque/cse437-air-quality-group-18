@@ -10,32 +10,50 @@
 - Contributor: Tapon Paul
 - License: Creative Commons Attribution 4.0 (CC BY 4.0)
 - Published: 21 January 2026
-- Dataset description: 1,048,551 hourly records across 103 Bangladeshi cities, supplied as a CSV with 13 columns.
+- Published description: 1,048,551 hourly records, 103 cities, 13 columns
 
-## How to obtain the raw data
+The title, city count, claimed period, and row count do not establish actual coverage. Complete hourly data for 103 cities over 25 years would be far larger. Notebook 01 must print the real timestamp range and coverage per city and investigate possible export truncation.
 
-1. Open the Mendeley Data link above.
-2. Select **Download All** for Version 2.
-3. Extract the archive without editing its contents.
-4. Place the original CSV file in `data/raw/` and keep the source filename unchanged.
-5. Record the downloaded filename and byte size in the table below.
+## Obtain and store the raw data
 
-Because the raw dataset is larger than the course's 50 MB Git limit, it is excluded by `.gitignore`. Do not commit it to GitHub.
+1. Download Version 2 from the Mendeley page.
+2. Extract it without editing the source file.
+3. Create the shared Google Drive folder described in the root README.
+4. Place the untouched source file in:
+   `MyDrive/CSE437_air_quality_group_18/raw/`
+5. Give both team members editor access and ensure both add the same-named shortcut to My Drive.
+6. Record the actual details below.
+
+Raw data is excluded from Git because of the course repository size limit.
 
 | Item | Value |
 | --- | --- |
-| Source filename | _Fill in after download_ |
-| Downloaded file size | _Fill in after download_ |
+| Source filename | _Fill after download_ |
+| Downloaded file size | _Fill after download_ |
 | Download date | _YYYY-MM-DD_ |
+| SHA-256 checksum | _Fill after download_ |
 | Version | 2 |
 
-## Folder policy
+## Shared folder policy
 
-- `raw/`: original downloaded files only; never overwrite or edit them.
-- `processed/`: outputs produced by the preprocessing notebook.
-- Do not manually modify processed data; regenerate it by running the notebooks.
+- `raw/`: original files only; never edit or overwrite them.
+- `processed/`: notebook handoff files such as audit summaries, daily data, and modeling data.
+- `models/`: fitted artifacts too large for GitHub.
+- Regenerate processed data through notebooks; do not edit it manually.
 
-## Expected source contents
+The repository contains placeholder `data/raw/` and `data/processed/` directories only to document the intended structure.
 
-The publisher describes 13 columns containing city identifiers and names, latitude and longitude, ISO 8601 timestamps, pollutant measurements, and AQI. The exact downloaded schema must be checked and documented in `01_data_audit_and_eda.ipynb`; do not silently rename or assume columns before that audit.
+## Required day-one verification
 
+Notebook 01 must verify rather than assume:
+
+- exact filename, delimiter, encoding, and schema;
+- total rows and columns;
+- minimum/maximum timestamp;
+- rows and date coverage per city;
+- readings per city-day and temporal gaps;
+- missingness, duplicates, and invalid values;
+- overlap among candidate cities;
+- whether the row count suggests truncation.
+
+Do not silently rename columns or make seasonal claims before this audit.
