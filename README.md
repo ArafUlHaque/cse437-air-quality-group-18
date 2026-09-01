@@ -29,7 +29,6 @@ Raw data is not stored in Git because it exceeds the course's 50 MB repository l
 ```text
 cse437-air-quality-group-18/
 ├── README.md
-├── GITHUB_SETUP.md
 ├── requirements.txt
 ├── .gitignore
 ├── data/
