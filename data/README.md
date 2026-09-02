@@ -12,48 +12,49 @@
 - Published: 21 January 2026
 - Published description: 1,048,551 hourly records, 103 cities, 13 columns
 
-The title, city count, claimed period, and row count do not establish actual coverage. Complete hourly data for 103 cities over 25 years would be far larger. Notebook 01 must print the real timestamp range and coverage per city and investigate possible export truncation.
+## Raw files and integrity
 
-## Obtain and store the raw data
+Store both untouched files in `MyDrive/CSE437_air_quality_group_18/raw/`. They are excluded from Git because of the repository size limit.
 
-1. Download Version 2 from the Mendeley page.
-2. Extract it without editing the source file.
-3. Create the shared Google Drive folder described in the root README.
-4. Place the untouched source file in:
-   `MyDrive/CSE437_air_quality_group_18/raw/`
-5. Give both team members editor access and ensure both add the same-named shortcut to My Drive.
-6. Record the actual details below.
+| File | Purpose | Verified size | SHA-256 |
+| --- | --- | ---: | --- |
+| `AQI Bangladesh.csv` | Main hourly air-quality observations | 93.75 MiB | `8760175fc048eea4180b828fd60d10cb799a73a5144a7e4aca19ddbaf8dbdd62` |
+| `cities.csv` | Published 103-city metadata and coordinates | 3,411 bytes | `dc0b7b598a2c595daf942d1011681fcd1d3475e398579d29180d0526b4ac102c` |
 
-Raw data is excluded from Git because of the course repository size limit.
+Do not rename, edit, overwrite, or manually clean these files. All transformations must be reproducible through the notebooks.
 
-| Item | Value |
-| --- | --- |
-| Source filename | _Fill after download_ |
-| Downloaded file size | _Fill after download_ |
-| Download date | _YYYY-MM-DD_ |
-| SHA-256 checksum | _Fill after download_ |
-| Version | 2 |
+## Verified Notebook 01 audit
+
+- Main AQI file: 1,048,551 rows, 13 source columns, 30 cities.
+- Metadata file: 103 cities.
+- Metadata cities absent from the AQI file: 73.
+- Recorded range: 1 January 2000–23 November 2025.
+- Dhaka has 9,459 days of history; most non-Dhaka cities have 1,208 days beginning 4 August 2022.
+- The file ends 24 data rows below Excel's limit, and the final city block is incomplete.
+- The evidence strongly indicates an Excel-truncated export; the data must not be described as complete coverage of 103 cities.
+- No exact duplicates or duplicate city–timestamp pairs were found.
+- CO2 is about 74% missing; one negative NO2 and eleven negative O3 observations were found.
+
+The faculty has allowed the project to proceed with this limitation documented.
+
+## Locked analytical scope
+
+- Cities: Dhaka, Dinājpur, Bherāmāra, Bhola, and Cox’s Bāzār.
+- Main common period: 5 August 2022–23 November 2025.
+- Common usable dates: 1,207 for every selected city.
+- Daily AQI: maximum supplied hourly AQI for each city-date.
+- Minimum daily AQI coverage: 18 valid hourly observations.
+- Main target: next calendar day's daily maximum AQI > 150.
+- CO2: excluded.
+- Negative NO2/O3: converted to missing during preprocessing.
 
 ## Shared folder policy
 
 - `raw/`: original files only; never edit or overwrite them.
-- `processed/`: notebook handoff files such as audit summaries, daily data, and modeling data.
+- `processed/notebook_01_audit/`: Notebook 01 audit tables and summary.
+- `processed/`: handoff files such as `daily_air_quality.csv` and `modeling_dataset.csv`.
+- `figures/`: reproducible figures used in notebooks and the report.
 - `models/`: fitted artifacts too large for GitHub.
 - Regenerate processed data through notebooks; do not edit it manually.
 
 The repository contains placeholder `data/raw/` and `data/processed/` directories only to document the intended structure.
-
-## Required day-one verification
-
-Notebook 01 must verify rather than assume:
-
-- exact filename, delimiter, encoding, and schema;
-- total rows and columns;
-- minimum/maximum timestamp;
-- rows and date coverage per city;
-- readings per city-day and temporal gaps;
-- missingness, duplicates, and invalid values;
-- overlap among candidate cities;
-- whether the row count suggests truncation.
-
-Do not silently rename columns or make seasonal claims before this audit.
