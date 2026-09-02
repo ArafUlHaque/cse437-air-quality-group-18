@@ -34,7 +34,13 @@ Notebook 03 will construct the target only after the complete city-calendar inde
 
 ## 5. Preprocessing
 
-Notebook 02 will keep only the five selected cities and common period, remove CO2, convert negative NO2/O3 readings to missing, preserve missingness and hourly-coverage indicators, aggregate hourly measurements to daily rows, and create a complete city-by-date calendar. Missing AQI will not be imputed for target construction.
+Notebook 02 verified the audited source checksum and retained the five selected cities over the locked common period. This produced 144,840 hourly observations: 28,968 observations for each city, covering 1,207 dates with 24 recorded hours per date. CO2, city identifiers, and coordinates were excluded from the analytical daily output.
+
+The complete source contained one negative NO2 reading and eleven negative O3 readings, which were converted to missing without deleting their rows. These readings occurred outside the five selected cities, so the selected hourly scope contained no missing pollutant or AQI values. No values were imputed.
+
+For each pollutant, the daily mean, daily maximum, and number of valid hourly readings were retained. Daily AQI was defined as the maximum supplied hourly AQI and was accepted only when at least 18 hourly AQI readings were valid. Every selected city-date had 24 valid AQI readings. Reindexing to the complete city-date calendar inserted no missing dates.
+
+The final `daily_air_quality.csv` contains 6,035 unique and sorted city-date rows with 24 columns. It contains no missing values in the selected scope and no target, lagged feature, data split, prediction, or model output. Notebook 03 will use this frozen daily file for leakage-safe target and feature construction.
 
 ## 6. Exploratory and statistical analysis
 

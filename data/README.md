@@ -48,11 +48,26 @@ The faculty has allowed the project to proceed with this limitation documented.
 - CO2: excluded.
 - Negative NO2/O3: converted to missing during preprocessing.
 
+## Verified Notebook 02 output
+
+Notebook 02 verified the audited source checksum, applied the locked scope, removed CO2 and static identifiers, and created the daily handoff without modifying the raw files.
+
+- Selected hourly rows: 144,840.
+- Daily rows: 6,035, consisting of 1,207 dates for each of five cities.
+- Daily columns: 24.
+- Pollutant summaries: daily mean and maximum of valid hourly readings.
+- Coverage fields: observed rows, observed hours, AQI valid hours, and pollutant valid hours.
+- Missing values in the selected daily output: zero.
+- Calendar rows inserted during reindexing: zero.
+- Targets and model features created: none.
+
+The generated handoffs are `processed/daily_air_quality.csv` and `processed/notebook_02_preprocessing_summary.json` in the shared Drive folder. Regenerate them by running Notebook 02; do not edit them manually.
+
 ## Shared folder policy
 
 - `raw/`: original files only; never edit or overwrite them.
 - `processed/notebook_01_audit/`: Notebook 01 audit tables and summary.
-- `processed/`: handoff files such as `daily_air_quality.csv` and `modeling_dataset.csv`.
+- `processed/`: Notebook 02 handoffs plus later files such as `modeling_dataset.csv`.
 - `figures/`: reproducible figures used in notebooks and the report.
 - `models/`: fitted artifacts too large for GitHub.
 - Regenerate processed data through notebooks; do not edit it manually.

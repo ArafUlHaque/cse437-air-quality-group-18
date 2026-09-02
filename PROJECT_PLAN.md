@@ -13,8 +13,8 @@ A successful result is not simply a high score. The final model must be compared
 | Stage | Status | Gate |
 | --- | --- | --- |
 | Notebook 01 — Audit and EDA | Complete | Passed |
-| Notebook 02 — Preprocessing | Next | Not started |
-| Notebook 03 — Feature engineering | Pending | Requires frozen daily file |
+| Notebook 02 — Preprocessing | Complete | Passed |
+| Notebook 03 — Feature engineering | Next | Requires leakage-safe feature construction |
 | Notebook 04 — Modeling and tuning | Pending | Requires leakage-safe modeling file |
 | Notebook 05 — Evaluation | Pending | Requires frozen model and test period |
 
@@ -33,6 +33,8 @@ A successful result is not simply a high score. The final model must be compared
 | CO2 | Drop; never use as a predictor |
 | Invalid pollutants | Convert negative NO2/O3 readings to missing |
 | Missing AQI | Do not impute for daily AQI or target construction |
+| Pollutant daily summaries | Mean and maximum of valid hourly readings; no imputation |
+| Coverage indicators | Preserve observed rows, observed hours, and valid-hour counts |
 | Timestamp | Use recorded clock time without shifting the day boundary; source has no offset |
 | Feature timing | Strictly lagged; no information from the label day |
 | Split | Chronological date split; never random |
@@ -46,7 +48,6 @@ The daily maximum is an operational aggregation of the supplied hourly AQI, not 
 
 ### Decisions still requiring later evidence
 
-- Exact pollutant daily aggregation statistics and missing-pollutant handling in Notebook 02
 - Final lag windows and feature count in Notebook 03
 - Exact chronological train/validation/test cut dates in Notebook 04
 - Final model families, tuning spaces, and classification threshold
@@ -92,6 +93,8 @@ City ranking, time-of-day, and seasonal plots are descriptive EDA, not primary r
 
 ### Notebook 02 — Preprocessing
 
+**Status:** complete; preprocessing gate passed.
+
 **Input:** raw files plus the locked Notebook 01 decisions.
 
 **Required work:**
@@ -111,9 +114,13 @@ City ranking, time-of-day, and seasonal plots are descriptive EDA, not primary r
 
 **Output:** `processed/daily_air_quality.csv` plus a compact preprocessing summary.
 
+**Verified result:** 144,840 selected hourly rows were aggregated into 6,035 unique city-date rows with 24 columns. Every city has 1,207 dates and 24 hourly observations per date. Calendar completion inserted zero rows, and the selected scope contains no missing daily values. Pollutants use daily mean and maximum summaries with valid-hour counts; no imputation, target, lag, split, or model was created.
+
 **Acceptance:** exactly one unique row per city-date; no target or model features are created; every transformation is documented and reproducible.
 
 ### Notebook 03 — Feature engineering
+
+**Status:** next; requires the frozen Notebook 02 daily file.
 
 **Input:** frozen daily clean data.
 
@@ -211,7 +218,7 @@ Suggested branches: `notebook-02-preprocessing-<name>`, `notebook-03-features-<n
 
 ## 11. AI-agent handoff prompt
 
-> Read `AGENTS.md` and `PROJECT_PLAN.md` completely. Work only on Notebook 02 on a new branch. Use the five locked cities and common period. Implement cleaning, daily aggregation, calendar completion, assertions, and saved outputs only. Do not create the next-day target, lag features, splits, or models. Keep every code section preceded by a markdown explanation and do not invent results.
+> Read `AGENTS.md` and `PROJECT_PLAN.md` completely. Work only on Notebook 03 on a new branch. Load the frozen `daily_air_quality.csv`, construct the target for exactly day `t+1`, create strictly historical lagged features, shift before rolling, report rows lost to lagging, and add leakage assertions. Do not create data splits, tune models, or inspect future test results. Keep every code section preceded by a markdown explanation and do not invent results.
 
 Never ask two agents to edit the same notebook at the same time. Review every generated cell and verify outputs yourself.
 
