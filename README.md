@@ -1,8 +1,8 @@
 # CSE437: Next-Day Unhealthy Air Quality Classification
 
-Group 18 data-science project using hourly air-quality observations from Bangladeshi cities.
+Group 18 data-science project using hourly air-quality observations from selected Bangladeshi cities.
 
-> **Current status:** repository and methodology plan are ready. The data-coverage audit has not yet been run. Do not begin modeling until Notebook 01 passes the audit gate described in [PROJECT_PLAN.md](PROJECT_PLAN.md).
+> **Current status:** Notebook 01 is complete and has passed the audit gate. The verified scope below is now authoritative. Notebook 02 (preprocessing) is the next stage; modeling must not begin before Notebooks 02 and 03 are complete.
 
 ## Problem statement
 
@@ -10,9 +10,9 @@ Predict whether the next calendar day's air quality will be **Unhealthy** using 
 
 ## Primary target
 
-`next_day_unhealthy` is 1 when the following calendar day's daily AQI is greater than 150 (integer AQI 151 or above), and 0 otherwise.
+`next_day_unhealthy` is 1 when the following calendar day's daily maximum of the supplied hourly AQI is greater than 150 (integer AQI 151 or above), and 0 otherwise.
 
-AQI 101–150 is "Unhealthy for Sensitive Groups" and is not positive in the main target. A 101+ sensitivity analysis may be reported separately, but it must use a different target name.
+AQI 101–150 is "Unhealthy for Sensitive Groups" and is not positive in the main target. A separate `next_day_usg_or_worse` sensitivity target may be reported using AQI greater than 100.
 
 ## Dataset
 
@@ -20,11 +20,36 @@ AQI 101–150 is "Unhealthy for Sensitive Groups" and is not positive in the mai
 - **Source:** [Mendeley Data, Version 2](https://data.mendeley.com/datasets/9j447cynb9/2)
 - **DOI:** [10.17632/9j447cynb9.2](https://doi.org/10.17632/9j447cynb9.2)
 - **License:** CC BY 4.0
-- **Published description:** 1,048,551 hourly rows, 103 cities, and 13 columns
+- **Raw files:** `AQI Bangladesh.csv` and `cities.csv`
+- **Main-file checksum:** `8760175fc048eea4180b828fd60d10cb799a73a5144a7e4aca19ddbaf8dbdd62`
 
-The published title and row count appear inconsistent with complete hourly coverage of 103 cities from 2000–2025. Notebook 01 must therefore verify the actual date range and coverage before any seasonal or modeling claims are made.
+### Verified Notebook 01 findings
+
+- The AQI file contains **1,048,551 rows**, **13 source columns**, and **30 cities**.
+- `cities.csv` lists 103 cities; 73 of them are absent from the AQI file.
+- The overall timestamp range is 1 January 2000–23 November 2025, but only Dhaka has the long history. Most non-Dhaka cities begin in August 2022.
+- The file is only 24 data rows below Excel's worksheet limit and its final city block is partial. This is strong evidence of an Excel-truncated export.
+- There are no exact duplicate rows, duplicate city–timestamp pairs, or timestamp gaps in the selected city series.
+- CO2 is approximately 74% missing. The audit also found one negative NO2 value and eleven negative O3 values.
+- The faculty has allowed the project to continue as long as the coverage and truncation limitation is documented.
 
 Raw data is not committed to GitHub. See [data/README.md](data/README.md).
+
+## Locked study scope
+
+| Item | Decision |
+| --- | --- |
+| Selected cities | Dhaka, Dinājpur, Bherāmāra, Bhola, Cox’s Bāzār |
+| Main common period | 5 August 2022–23 November 2025 |
+| Common usable dates | 1,207 per city |
+| Daily AQI | Maximum supplied hourly AQI for each city-date |
+| Usable AQI day | At least 18 valid hourly AQI observations |
+| Positive class | Next day's daily maximum AQI > 150 |
+| CO2 | Excluded |
+| Invalid readings | Negative NO2/O3 converted to missing in Notebook 02 |
+| Seasonality | Optional descriptive EDA only |
+
+The five cities were selected for complete common coverage and geographic diversity, not for their target rates or expected model performance.
 
 ## Research questions
 
@@ -32,52 +57,48 @@ Raw data is not committed to GitHub. See [data/README.md](data/README.md).
 2. Can machine-learning models outperform a persistence baseline for next-day unhealthy-air prediction?
 3. Which strictly lagged pollutant measurements and historical windows are most useful for predicting next-day unhealthy air quality?
 
-Seasonality remains optional EDA only if the coverage audit finds enough complete and comparable seasonal cycles.
-
 ## Non-negotiable methodology
 
-- Use Dhaka plus 2–4 smaller cities selected after the coverage audit.
-- Drop `CO2`; it is not used as a predictor.
+- Use only the five selected cities and the locked common period for the main cross-city study.
+- Drop CO2; it is never a predictor.
 - Aggregate hourly observations to one row per city per calendar day.
-- Every predictor must be available by the end of day `t`; the label belongs to day `t+1`.
-- Verify that the label date is exactly the next calendar day; never assume the next row is the next day.
+- Keep calendar gaps explicit before constructing the target.
+- Every predictor must be available by the end of day `t`; the label belongs to exactly day `t+1`.
 - Split train/validation/test chronologically by date, never randomly.
 - Establish persistence first: predict tomorrow's class from today's class.
 - Compare models primarily using PR-AUC and recall. Accuracy is secondary.
-- Do not report a model as useful merely because it scores well; it must beat persistence on the agreed test period.
+- A model is not considered useful merely because it scores well; it must be compared with persistence on identical rows.
 
 ## Notebooks
 
-| Notebook | Responsibility | Open in Colab |
-| --- | --- | --- |
-| `01_data_audit_and_eda.ipynb` | Coverage, integrity, truncation audit, EDA, and city selection | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/01_data_audit_and_eda.ipynb) |
-| `02_preprocessing.ipynb` | Cleaning, CO2 removal, daily aggregation, missing-day handling | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/02_preprocessing.ipynb) |
-| `03_feature_engineering.ipynb` | Leakage-safe lag/rolling features and next-day target | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/03_feature_engineering.ipynb) |
-| `04_modeling_and_tuning.ipynb` | Chronological split, persistence, models, tuning, transfer experiment | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/04_modeling_and_tuning.ipynb) |
-| `05_evaluation_and_error_analysis.ipynb` | Untouched-test evaluation, baseline comparison, errors, limitations | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/05_evaluation_and_error_analysis.ipynb) |
+| Notebook | Responsibility | Status | Open in Colab |
+| --- | --- | --- | --- |
+| `01_data_audit_and_eda.ipynb` | Coverage, integrity, truncation audit, EDA, city selection | Complete | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/01_data_audit_and_eda.ipynb) |
+| `02_preprocessing.ipynb` | City/period filtering, invalid values, CO2 removal, daily aggregation, calendar completion | Next | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/02_preprocessing.ipynb) |
+| `03_feature_engineering.ipynb` | Leakage-safe lag/rolling features and next-day target | Pending | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/03_feature_engineering.ipynb) |
+| `04_modeling_and_tuning.ipynb` | Chronological split, persistence, models, tuning, transfer experiment | Pending | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/04_modeling_and_tuning.ipynb) |
+| `05_evaluation_and_error_analysis.ipynb` | Untouched-test evaluation, baseline comparison, errors, limitations | Pending | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/05_evaluation_and_error_analysis.ipynb) |
 
-Run them in numerical order. Each must run top-to-bottom on a fresh Colab runtime after its required input artifacts exist.
+Run the notebooks in numerical order. Each notebook must run top-to-bottom after its required input artifacts exist.
 
 ## Google Colab and shared storage
 
-1. In Google Drive, create a shared folder and give both members editor access.
-2. Each member adds a shortcut to that folder in **My Drive** named exactly `CSE437_air_quality_group_18`.
-3. Put the untouched source file inside `CSE437_air_quality_group_18/raw/`.
-4. Open a notebook using the Colab link above.
-5. Its setup cell mounts Drive, clones/pulls this repository, and uses the shared folder for persistent raw data, processed outputs, and model artifacts.
-6. If working on a feature branch, change `GIT_BRANCH = "main"` in the notebook setup cell to the branch name.
+1. Both members should add the shared folder to **My Drive** with the name `CSE437_air_quality_group_18`.
+2. Keep the untouched CSV files in `MyDrive/CSE437_air_quality_group_18/raw/`.
+3. Use `processed/`, `figures/`, and `models/` inside that Drive folder for persistent generated artifacts.
+4. Open the tracked notebook using its Colab link. The notebook mounts Drive and reads data directly from the shared folder; cloning the repository inside Colab is not required.
+5. Commit the executed notebook to a feature branch and use a pull request for teammate review.
 
 ## Collaboration workflow
 
-- Never work directly on `main`.
-- Use one branch per task, for example `notebook-01-audit-araf`.
-- Pull the latest `main` before starting.
-- Keep commits small and descriptive.
-- Open a pull request; the other member reviews it before merge.
 - Do not edit the same notebook simultaneously.
+- Use one branch per task, such as `notebook-02-preprocessing-araf`.
+- Branch from the latest `main` and keep commits focused.
+- Open a pull request; the other member reviews it before merge.
+- Do not commit raw CSV files, secrets, Drive paths containing personal names, or large model files.
 - Update the contribution table in the final report from GitHub history.
 
-Recommended two-person ownership is documented in [PROJECT_PLAN.md](PROJECT_PLAN.md). AI agents must also follow [AGENTS.md](AGENTS.md).
+The complete workflow and two-person division are in [PROJECT_PLAN.md](PROJECT_PLAN.md). AI agents must also follow [AGENTS.md](AGENTS.md).
 
 ## Repository structure
 
