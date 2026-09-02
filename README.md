@@ -2,7 +2,7 @@
 
 Group 18 data-science project using hourly air-quality observations from selected Bangladeshi cities.
 
-> **Current status:** Notebook 01 is complete and has passed the audit gate. The verified scope below is now authoritative. Notebook 02 (preprocessing) is the next stage; modeling must not begin before Notebooks 02 and 03 are complete.
+> **Current status:** Notebooks 01 and 02 are complete and have passed their audit and preprocessing gates. Notebook 03 (feature engineering) is the next stage; modeling must not begin before its leakage checks pass.
 
 ## Problem statement
 
@@ -51,6 +51,15 @@ Raw data is not committed to GitHub. See [data/README.md](data/README.md).
 
 The five cities were selected for complete common coverage and geographic diversity, not for their target rates or expected model performance.
 
+### Verified Notebook 02 preprocessing
+
+- The locked scope contains 144,840 hourly rows: 28,968 for each of the five cities.
+- Every city contains 1,207 dates and 24 observations per date during the common period.
+- Pollutants are summarized by the mean and maximum of valid hourly readings; no values are imputed.
+- Observation counts and valid-hour counts are retained for data-quality checks.
+- Reindexing produced the expected 6,035 city-date rows and inserted no missing calendar dates.
+- The final `daily_air_quality.csv` contains 24 columns, no missing values in the selected scope, and no targets or model features.
+
 ## Research questions
 
 1. How well does a model trained on Dhaka transfer to smaller Bangladeshi cities with comparable temporal coverage?
@@ -74,8 +83,8 @@ The five cities were selected for complete common coverage and geographic divers
 | Notebook | Responsibility | Status | Open in Colab |
 | --- | --- | --- | --- |
 | `01_data_audit_and_eda.ipynb` | Coverage, integrity, truncation audit, EDA, city selection | Complete | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/01_data_audit_and_eda.ipynb) |
-| `02_preprocessing.ipynb` | City/period filtering, invalid values, CO2 removal, daily aggregation, calendar completion | Next | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/02_preprocessing.ipynb) |
-| `03_feature_engineering.ipynb` | Leakage-safe lag/rolling features and next-day target | Pending | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/03_feature_engineering.ipynb) |
+| `02_preprocessing.ipynb` | City/period filtering, invalid values, CO2 removal, daily aggregation, calendar completion | Complete | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/02_preprocessing.ipynb) |
+| `03_feature_engineering.ipynb` | Leakage-safe lag/rolling features and next-day target | Next | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/03_feature_engineering.ipynb) |
 | `04_modeling_and_tuning.ipynb` | Chronological split, persistence, models, tuning, transfer experiment | Pending | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/04_modeling_and_tuning.ipynb) |
 | `05_evaluation_and_error_analysis.ipynb` | Untouched-test evaluation, baseline comparison, errors, limitations | Pending | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/05_evaluation_and_error_analysis.ipynb) |
 
