@@ -9,17 +9,19 @@ Read `PROJECT_PLAN.md` completely before editing. Treat faculty conditions and t
 ## Current project state
 
 - Notebook 01 has passed its audit gate.
-- Notebook 02 preprocessing is the next allowed stage.
+- Notebook 02 has passed its preprocessing gate.
+- Notebook 03 feature engineering is the next allowed stage.
 - Locked cities: Dhaka, Dinājpur, Bherāmāra, Bhola, and Cox’s Bāzār.
 - Locked common period: 5 August 2022–23 November 2025 (1,207 usable dates per city).
 - Daily AQI is the maximum supplied hourly AQI for each city-date with at least 18 valid AQI hours.
+- Frozen daily output: 6,035 unique city-date rows and 24 columns, with no missing values in the selected scope.
 - Main positive class: next calendar day's daily maximum AQI > 150.
 
 ## Scope and sequencing
 
 - Work only on the notebook or file assigned by the user.
 - Notebook order is a dependency chain: 01 → 02 → 03 → 04 → 05.
-- Notebook 02 may clean and aggregate but must not create model features or train models.
+- Notebook 03 may create the exact next-day target and historical features but must not split data, tune models, or train models.
 - Do not rewrite a teammate's work or alter unrelated files.
 - Ask before changing a locked decision.
 
