@@ -1,11 +1,11 @@
 # Next-Day Unhealthy Air Quality Classification
 
-**Course:** CSE437 Data Science  
-**Section:** [Add section]  
-**Semester:** [Add semester]  
-**Group:** 18  
-**Group members:** Araf Ul Haque ([Add student ID]); S M Arham Ali ([Add student ID])  
-**GitHub repository:** <https://github.com/ArafUlHaque/cse437-air-quality-group-18>  
+**Course:** CSE437 Data Science
+**Section:** [5]
+**Semester:** [Summer 2026]
+**Group:** 18
+**Group members:** Araf Ul Haque ([24241204]); S M Arham Ali ([24241203])
+**GitHub repository:** https://github.com/ArafUlHaque/cse437-air-quality-group-18
 **Date:** 3 September 2026
 
 ## Summary
@@ -34,14 +34,14 @@ Although the published metadata lists 103 cities, only 30 appear in the main AQI
 
 After the seven days of history required for feature construction were removed from each city, the modeling dataset contained 6,000 rows. There were 2,399 positives (39.98%) and 3,601 negatives (60.02%).
 
-| City | Modeling rows | Positive days | Positive rate |
-| --- | ---: | ---: | ---: |
-| Dhaka | 1,200 | 563 | 46.92% |
-| Dinājpur | 1,200 | 540 | 45.00% |
-| Bherāmāra | 1,200 | 660 | 55.00% |
-| Bhola | 1,200 | 339 | 28.25% |
-| Cox’s Bāzār | 1,200 | 297 | 24.75% |
-| **Overall** | **6,000** | **2,399** | **39.98%** |
+| City        | Modeling rows | Positive days | Positive rate |
+| ----------- | ------------: | ------------: | ------------: |
+| Dhaka       |         1,200 |           563 |        46.92% |
+| Dinājpur    |         1,200 |           540 |        45.00% |
+| Bherāmāra   |         1,200 |           660 |        55.00% |
+| Bhola       |         1,200 |           339 |        28.25% |
+| Cox’s Bāzār |         1,200 |           297 |        24.75% |
+| **Overall** |     **6,000** |     **2,399** |    **39.98%** |
 
 A separate binary variable, `next_day_usg_or_worse`, marks next-day AQI greater than 100. It contains 3,703 positives (61.72%) but was not used for main-model selection.
 
@@ -77,15 +77,15 @@ No categorical encoding was needed because city was an identifier and the final 
 
 ### 2.5 Before and after
 
-| Stage | Rows | Columns | Main change |
-| --- | ---: | ---: | --- |
-| Raw source | 1,048,551 | 13 | Untouched downloaded AQI file |
-| Selected hourly working table | 144,840 | 11 | Five cities/common dates; identifiers and CO2 removed; date/hour added |
-| Daily processed output | 6,035 | 24 | One row per city-date with aggregates and coverage counts |
-| Model-ready output | 6,000 | 71 | Seven structural-history rows removed per city; identifiers, outcomes, and 65 predictors |
-| Dhaka training features | 840 | 65 | Earliest chronological model-development segment |
-| Dhaka validation features | 180 | 65 | Later model and threshold selection segment |
-| All-city test features | 900 | 65 | Final untouched period, 180 rows per city |
+| Stage                         |      Rows | Columns | Main change                                                                              |
+| ----------------------------- | --------: | ------: | ---------------------------------------------------------------------------------------- |
+| Raw source                    | 1,048,551 |      13 | Untouched downloaded AQI file                                                            |
+| Selected hourly working table |   144,840 |      11 | Five cities/common dates; identifiers and CO2 removed; date/hour added                   |
+| Daily processed output        |     6,035 |      24 | One row per city-date with aggregates and coverage counts                                |
+| Model-ready output            |     6,000 |      71 | Seven structural-history rows removed per city; identifiers, outcomes, and 65 predictors |
+| Dhaka training features       |       840 |      65 | Earliest chronological model-development segment                                         |
+| Dhaka validation features     |       180 |      65 | Later model and threshold selection segment                                              |
+| All-city test features        |       900 |      65 | Final untouched period, 180 rows per city                                                |
 
 Leakage was prevented by completing the calendar before shifting, constructing predictors only from day `t` or earlier, splitting by target date, fitting learned transformations inside training folds, selecting the model and threshold without test labels, and evaluating the frozen test set once.
 
@@ -107,11 +107,11 @@ The city-level class rates also established a meaningful group difference before
 
 ### 3.3 What the data says so far
 
-- The source file is probably truncated at an Excel row limit, so the study cannot claim national coverage of 103 cities.
-- The chosen five-city common period is unusually complete: every city-date has 24 observations and no daily value is missing.
-- Positive-class prevalence differs sharply by city, making accuracy alone unsuitable and requiring per-city results.
-- Concurrent AQI is strongly related to particulate pollution, but forecasting requires lagged rather than target-day measurements.
-- The temporal ordering requires chronological splitting and training-only transformations; a random split would leak future conditions into development.
+* The source file is probably truncated at an Excel row limit, so the study cannot claim national coverage of 103 cities.
+* The chosen five-city common period is unusually complete: every city-date has 24 observations and no daily value is missing.
+* Positive-class prevalence differs sharply by city, making accuracy alone unsuitable and requiring per-city results.
+* Concurrent AQI is strongly related to particulate pollution, but forecasting requires lagged rather than target-day measurements.
+* The temporal ordering requires chronological splitting and training-only transformations; a random split would leak future conditions into development.
 
 ## 4. Feature Engineering
 
@@ -119,11 +119,11 @@ The city-level class rates also established a meaningful group difference before
 
 Thirteen daily signals were used: `daily_aqi`, `pm10_mean`, `pm10_max`, `pm25_mean`, `pm25_max`, `co_mean`, `co_max`, `no2_mean`, `no2_max`, `so2_mean`, `so2_max`, `o3_mean`, and `o3_max`. Each signal produced five historical features:
 
-- value exactly 1 day before the target (`_lag1`);
-- value exactly 2 days before the target (`_lag2`);
-- value exactly 7 days before the target (`_lag7`);
-- mean of target-minus-1 through target-minus-3 (`_roll3_mean`); and
-- mean of target-minus-1 through target-minus-7 (`_roll7_mean`).
+* value exactly 1 day before the target (`_lag1`);
+* value exactly 2 days before the target (`_lag2`);
+* value exactly 7 days before the target (`_lag7`);
+* mean of target-minus-1 through target-minus-3 (`_roll3_mean`); and
+* mean of target-minus-1 through target-minus-7 (`_roll7_mean`).
 
 The 13 signals multiplied by five historical summaries produced 65 predictors. Each rolling feature was shifted by one day before rolling, preventing the target day from entering the calculation. The first seven target dates per city, 35 rows total, were removed because complete seven-day history did not exist.
 
@@ -155,9 +155,9 @@ Persistence predicts that tomorrow's class will equal today's class: it predicts
 
 ### 5.3 Model families
 
-- **Logistic Regression** supplied an interpretable linear probability model. It assumes that the log-odds are an additive linear function of scaled predictors and benefits from regularization when lagged features are correlated.
-- **Random Forest** represented nonlinear thresholds and feature interactions through bagged decision trees. It requires fewer functional-form assumptions and no feature scaling, but can be less transparent and may produce less smooth probabilities.
-- **Histogram Gradient Boosting** built an additive sequence of shallow tree structures to capture nonlinear relationships efficiently. It can model interactions but requires careful control of learning rate, leaf count, and class weighting.
+* **Logistic Regression** supplied an interpretable linear probability model. It assumes that the log-odds are an additive linear function of scaled predictors and benefits from regularization when lagged features are correlated.
+* **Random Forest** represented nonlinear thresholds and feature interactions through bagged decision trees. It requires fewer functional-form assumptions and no feature scaling, but can be less transparent and may produce less smooth probabilities.
+* **Histogram Gradient Boosting** built an additive sequence of shallow tree structures to capture nonlinear relationships efficiently. It can model interactions but requires careful control of learning rate, leaf count, and class weighting.
 
 ### 5.4 Metrics
 
@@ -169,11 +169,11 @@ Precision, F1, accuracy, class prevalence, and confusion-matrix counts were seco
 
 ### 6.1 Search space
 
-| Model | Searched hyperparameters | Fixed settings | Configurations |
-| --- | --- | --- | ---: |
-| Logistic Regression | `C`: 0.1, 1.0, 10.0; `class_weight`: `None`, `balanced` | `solver=liblinear`, `max_iter=3000` | 6 |
-| Random Forest | `max_depth`: 5, 10, `None`; `min_samples_leaf`: 2, 5; `class_weight`: `None`, `balanced` | `n_estimators=200` | 12 |
-| Histogram Gradient Boosting | `learning_rate`: 0.05, 0.1; `max_leaf_nodes`: 15, 31; `class_weight`: `None`, `balanced` | `max_iter=200`, `l2_regularization=1.0` | 8 |
+| Model                       | Searched hyperparameters                                                                 | Fixed settings                          | Configurations |
+| --------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------- | -------------: |
+| Logistic Regression         | `C`: 0.1, 1.0, 10.0; `class_weight`: `None`, `balanced`                                  | `solver=liblinear`, `max_iter=3000`     |              6 |
+| Random Forest               | `max_depth`: 5, 10, `None`; `min_samples_leaf`: 2, 5; `class_weight`: `None`, `balanced` | `n_estimators=200`                      |             12 |
+| Histogram Gradient Boosting | `learning_rate`: 0.05, 0.1; `max_leaf_nodes`: 15, 31; `class_weight`: `None`, `balanced` | `max_iter=200`, `l2_regularization=1.0` |              8 |
 
 ### 6.2 Method
 
@@ -181,11 +181,11 @@ Precision, F1, accuracy, class prevalence, and confusion-matrix counts were seco
 
 ### 6.3 Results
 
-| Model | Best configuration | Mean CV average precision | Validation average precision | Validation recall at 0.5 |
-| --- | --- | ---: | ---: | ---: |
-| Logistic Regression | `C=1.0`, `class_weight=balanced` | 0.9508 | **0.9853** | **0.9185** |
-| Random Forest | `max_depth=10`, `min_samples_leaf=5`, `class_weight=None` | **0.9655** | **0.9853** | 0.8519 |
-| Histogram Gradient Boosting | `learning_rate=0.05`, `max_leaf_nodes=31`, `class_weight=balanced` | 0.9634 | 0.9813 | 0.8444 |
+| Model                       | Best configuration                                                 | Mean CV average precision | Validation average precision | Validation recall at 0.5 |
+| --------------------------- | ------------------------------------------------------------------ | ------------------------: | ---------------------------: | -----------------------: |
+| Logistic Regression         | `C=1.0`, `class_weight=balanced`                                   |                    0.9508 |                   **0.9853** |               **0.9185** |
+| Random Forest               | `max_depth=10`, `min_samples_leaf=5`, `class_weight=None`          |                **0.9655** |                   **0.9853** |                   0.8519 |
+| Histogram Gradient Boosting | `learning_rate=0.05`, `max_leaf_nodes=31`, `class_weight=balanced` |                    0.9634 |                       0.9813 |                   0.8444 |
 
 Across the three best configurations, mean CV average precision ranged only from 0.9508 to 0.9655, while validation average precision ranged from 0.9813 to 0.9853. The nonlinear models' small CV advantage did not become higher validation recall. Logistic Regression ranked first under the predeclared order of validation average precision, recall, and simplicity.
 
@@ -197,10 +197,10 @@ The Logistic Regression threshold was then selected using validation probabiliti
 
 The frozen Logistic Regression pipeline was applied once to 900 test rows. The rejected Random Forest and Histogram Gradient Boosting candidates were not repeatedly evaluated on the test labels; their comparison is reported in Section 6.3. The final test comparison therefore contains the required baseline and the single validation-selected model on identical rows.
 
-| Method | Rows | Positive rate | Average precision | Recall | Precision | F1 | Accuracy | TN | FP | FN | TP |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Logistic Regression | 900 | 20.89% | **0.9359** | **0.9947** | 0.3495 | 0.5173 | 0.6122 | 364 | 348 | 1 | 187 |
-| Persistence | 900 | 20.89% | 0.7003 | 0.8032 | **0.8207** | **0.8118** | **0.9222** | 679 | 33 | 37 | 151 |
+| Method              | Rows | Positive rate | Average precision |     Recall |  Precision |         F1 |   Accuracy |  TN |  FP | FN |  TP |
+| ------------------- | ---: | ------------: | ----------------: | ---------: | ---------: | ---------: | ---------: | --: | --: | -: | --: |
+| Logistic Regression |  900 |        20.89% |        **0.9359** | **0.9947** |     0.3495 |     0.5173 |     0.6122 | 364 | 348 |  1 | 187 |
+| Persistence         |  900 |        20.89% |            0.7003 |     0.8032 | **0.8207** | **0.8118** | **0.9222** | 679 |  33 | 37 | 151 |
 
 Machine learning beat persistence on both predeclared primary metrics, but not on precision, F1, or accuracy. This is the expected effect of the very low recall-oriented threshold: it prevented almost every missed unhealthy day while issuing many extra warnings.
 
@@ -242,19 +242,20 @@ With better data, the next steps would be to obtain a complete non-truncated exp
 
 ## 9. Contributions
 
-| Member | Student ID | Contribution |
-| --- | --- | --- |
-| Araf Ul Haque | [Add student ID] | Repository setup; dataset audit and EDA; preprocessing; feature engineering; leakage checks; documentation integration and review. |
-| S M Arham Ali | [Add student ID] | Chronological modeling and tuning; final evaluation and error analysis; transfer analysis; notebook cleanup and documentation review. |
+| Member        | Student ID       | Contribution                                                                                                                          |
+| ------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Araf Ul Haque | [24241204] | Repository setup; dataset audit and EDA; preprocessing; feature engineering; leakage checks; documentation integration and review.    |
+| S M Arham Ali | [24241203] | Chronological modeling and tuning; final evaluation and error analysis; transfer analysis; notebook cleanup and documentation review. |
 
 The GitHub commit and pull-request history is the evidence record for individual work. Both members are responsible for reviewing the final report and verifying that every reported number matches an executed notebook output.
 
 ## References
 
-1. Paul, T. (2026). *Bangladesh Air Quality Index (AQI) Dataset (2000-2025): Historical Hourly Air Pollution Data Across 103 Cities* (Version 2). Mendeley Data. <https://doi.org/10.17632/9j447cynb9.2>
-2. pandas development team. *pandas documentation*. <https://pandas.pydata.org/docs/>
-3. NumPy developers. *NumPy documentation*. <https://numpy.org/doc/>
-4. scikit-learn developers. *scikit-learn user guide*. <https://scikit-learn.org/stable/user_guide.html>
-5. Matplotlib development team. *Matplotlib documentation*. <https://matplotlib.org/stable/>
-6. Waskom, M. L. (2021). seaborn: statistical data visualization. *Journal of Open Source Software, 6*(60), 3021. <https://doi.org/10.21105/joss.03021>
+1. Paul, T. (2026). *Bangladesh Air Quality Index (AQI) Dataset (2000-2025): Historical Hourly Air Pollution Data Across 103 Cities* (Version 2). Mendeley Data. https://doi.org/10.17632/9j447cynb9.2
+2. pandas development team. *pandas documentation*. https://pandas.pydata.org/docs/
+3. NumPy developers. *NumPy documentation*. https://numpy.org/doc/
+4. scikit-learn developers. *scikit-learn user guide*. https://scikit-learn.org/stable/user_guide.html
+5. Matplotlib development team. *Matplotlib documentation*. https://matplotlib.org/stable/
+6. Waskom, M. L. (2021). seaborn: statistical data visualization. *Journal of Open Source Software, 6*(60), 3021. https://doi.org/10.21105/joss.03021
 7. **AI assistance declaration:** ChatGPT/Codex was used to help plan the repository structure, draft and refine notebook code and Markdown explanations, diagnose execution errors, check leakage constraints, summarize verified outputs, and edit project documentation and this report. The group members executed the notebooks, inspected the outputs, reviewed the generated material, and remain responsible for the final analysis and claims.
+
