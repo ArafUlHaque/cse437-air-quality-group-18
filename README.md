@@ -31,7 +31,7 @@ AQI 101–150 is "Unhealthy for Sensitive Groups" and is not positive in the mai
 - The file is only 24 data rows below Excel's worksheet limit and its final city block is partial. This is strong evidence of an Excel-truncated export.
 - There are no exact duplicate rows, duplicate city–timestamp pairs, or timestamp gaps in the selected city series.
 - CO2 is approximately 74% missing. The audit also found one negative NO2 value and eleven negative O3 values.
-- The faculty has allowed the project to continue as long as the coverage and truncation limitation is documented.
+
 
 Raw data is not committed to GitHub. See [data/README.md](data/README.md).
 
