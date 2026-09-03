@@ -63,11 +63,30 @@ Notebook 02 verified the audited source checksum, applied the locked scope, remo
 
 The generated handoffs are `processed/daily_air_quality.csv` and `processed/notebook_02_preprocessing_summary.json` in the shared Drive folder. Regenerate them by running Notebook 02; do not edit them manually.
 
+
+## Verified Notebook 03 output
+
+Notebook 03 re-verified the frozen daily handoff using SHA-256 `460009e01b010695a256be268112aacf1ad32b1757f69ab199fd3a7611d16aca` and constructed leakage-safe next-day targets and historical features.
+
+- Historical signals: daily AQI plus daily mean and maximum for six pollutants (13 total).
+- Individual lags: 1, 2, and 7 days before the target.
+- Rolling summaries: 3-day and 7-day means, always shifted by one day before rolling.
+- Predictor columns: 65, all complete after the structural history rows are removed.
+- Rows removed: 35, consisting of the first seven target dates for each city.
+- Final modeling rows: 6,000, consisting of 1,200 rows for each city.
+- Final columns: 71, consisting of 3 identifiers, 3 outcomes, and 65 predictors.
+- Main-target positives: 2,399 (39.98%).
+- Sensitivity-target positives: 3,703 (61.72%).
+- Split, scaler, prediction, threshold, and model created: none.
+- Feature and saved-file leakage checks: passed.
+
+The generated handoffs are `processed/modeling_dataset.csv`, `processed/notebook_03_feature_manifest.csv`, and `processed/notebook_03_feature_summary.json` in shared Drive. Regenerate them by running Notebook 03; do not edit them manually.
+
 ## Shared folder policy
 
 - `raw/`: original files only; never edit or overwrite them.
 - `processed/notebook_01_audit/`: Notebook 01 audit tables and summary.
-- `processed/`: Notebook 02 handoffs plus later files such as `modeling_dataset.csv`.
+- `processed/`: frozen Notebook 02 daily handoffs and Notebook 03 modeling, manifest, and summary handoffs.
 - `figures/`: reproducible figures used in notebooks and the report.
 - `models/`: fitted artifacts too large for GitHub.
 - Regenerate processed data through notebooks; do not edit it manually.

@@ -8,20 +8,23 @@ Read `PROJECT_PLAN.md` completely before editing. Treat faculty conditions and t
 
 ## Current project state
 
-- Notebook 01 has passed its audit gate.
-- Notebook 02 has passed its preprocessing gate.
-- Notebook 03 feature engineering is the next allowed stage.
+- Notebooks 01, 02, and 03 have passed their audit, preprocessing, and feature-engineering gates.
+- Notebook 04 modeling and tuning is the next allowed stage.
 - Locked cities: Dhaka, Dinājpur, Bherāmāra, Bhola, and Cox’s Bāzār.
 - Locked common period: 5 August 2022–23 November 2025 (1,207 usable dates per city).
 - Daily AQI is the maximum supplied hourly AQI for each city-date with at least 18 valid AQI hours.
 - Frozen daily output: 6,035 unique city-date rows and 24 columns, with no missing values in the selected scope.
 - Main positive class: next calendar day's daily maximum AQI > 150.
+- Frozen modeling output: 6,000 rows, 1,200 per city, 71 total columns, and 65 complete historical predictors.
+- Locked feature history: 1-, 2-, and 7-day lags plus shifted 3-day and 7-day rolling means for 13 signals.
+- Notebook 03 output contains 2,399 main-target positives (39.98%).
 
 ## Scope and sequencing
 
 - Work only on the notebook or file assigned by the user.
 - Notebook order is a dependency chain: 01 → 02 → 03 → 04 → 05.
-- Notebook 03 may create the exact next-day target and historical features but must not split data, tune models, or train models.
+- Notebook 03 outputs are frozen; do not redefine its targets, feature windows, or feature list silently.
+- Notebook 04 may create chronological splits, persistence predictions, fitted transformations, tuned validation models, and the transfer experiment, but it must not perform the final untouched-test evaluation assigned to Notebook 05.
 - Do not rewrite a teammate's work or alter unrelated files.
 - Ask before changing a locked decision.
 
@@ -46,6 +49,17 @@ Read `PROJECT_PLAN.md` completely before editing. Treat faculty conditions and t
 - Reindex every city to a complete calendar before any next-day target is created.
 - Save exactly one unique, sorted row per city-date to `processed/daily_air_quality.csv`.
 - Do not create the next-day target until Notebook 03.
+
+
+## Notebook 03 feature-engineering rules
+
+- Read `processed/modeling_dataset.csv` together with `processed/notebook_03_feature_manifest.csv` and `processed/notebook_03_feature_summary.json`.
+- Use only the 65 columns listed as features in the manifest or summary.
+- Treat `city`, `feature_date`, and `target_date` as identifiers, not automatic predictors.
+- Treat `target_daily_aqi`, `next_day_unhealthy`, and `next_day_usg_or_worse` as outcomes, never predictors.
+- The main task uses `next_day_unhealthy`; the AQI > 100 target is a separately named sensitivity analysis.
+- Do not reconstruct unshifted or target-day pollutant features.
+- Preserve the exact one-day relationship between feature date and target date.
 
 ## Non-negotiable modeling rules
 
