@@ -33,3 +33,12 @@ Notebook 05 saved and verified all four files before printing `NOTEBOOK 05 FINAL
 - Clearly distinguish validation figures from untouched-test figures.
 - Preserve readable labels and Unicode city names.
 
+## Committed report figures
+
+The following exact notebook outputs are copied to `figures/report/` so that `report/report.md` renders reproducibly:
+
+- `figure_1_aqi_distribution_and_correlation.png`
+- `figure_2_test_pr_curves.png`
+- `figure_3_test_confusion_matrices.png`
+
+These copies must remain identical to the executed notebook outputs.
