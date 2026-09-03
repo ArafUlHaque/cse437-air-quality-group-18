@@ -30,7 +30,7 @@ The main study uses Dhaka, Dinājpur, Bherāmāra, Bhola, and Cox’s Bāzār ov
 
 Daily AQI is operationally defined as the maximum supplied hourly AQI for a city-date with at least 18 valid AQI hours. The main positive class is the next calendar day's daily maximum AQI greater than 150. AQI 101–150 remains negative in the main task; a separately named AQI-greater-than-100 sensitivity target may be examined.
 
-Notebook 03 will construct the target only after the complete city-calendar index exists. Every feature must originate on day `t` or earlier, and the label must be verified as exactly day `t+1`.
+Notebook 03 constructed every row around a target date and verified that its feature date was exactly one calendar day earlier. The actual target-day AQI was retained only as an outcome for later severity analysis. Every predictor originates at least one day before its target, and no target-day measurement is included in the feature list.
 
 ## 5. Preprocessing
 
@@ -40,7 +40,7 @@ The complete source contained one negative NO2 reading and eleven negative O3 re
 
 For each pollutant, the daily mean, daily maximum, and number of valid hourly readings were retained. Daily AQI was defined as the maximum supplied hourly AQI and was accepted only when at least 18 hourly AQI readings were valid. Every selected city-date had 24 valid AQI readings. Reindexing to the complete city-date calendar inserted no missing dates.
 
-The final `daily_air_quality.csv` contains 6,035 unique and sorted city-date rows with 24 columns. It contains no missing values in the selected scope and no target, lagged feature, data split, prediction, or model output. Notebook 03 will use this frozen daily file for leakage-safe target and feature construction.
+The final `daily_air_quality.csv` contains 6,035 unique and sorted city-date rows with 24 columns. It contains no missing values in the selected scope and no target, lagged feature, data split, prediction, or model output. Notebook 03 used this frozen daily file without altering its preprocessing decisions.
 
 ## 6. Exploratory and statistical analysis
 
@@ -48,7 +48,22 @@ Seasonality is technically observable in the common period but remains optional 
 
 ## 7. Features and chronological validation
 
-_Document lags, shifted rolling windows, feature selection, split dates, and class balance after Notebooks 03 and 04 are executed._
+Notebook 03 used 13 historical signals: daily AQI plus the daily mean and maximum of PM10, PM2.5, CO, NO2, SO2, and O3. For every signal, it created values from 1, 2, and 7 days before the target. It also created 3-day and 7-day rolling means after first shifting each series by one day. The result was 65 predictors: 39 individual lags and 26 shifted rolling means.
+
+The nine observation and valid-hour count columns were excluded as predictors because every one was constant at 24 in the selected scope. City and date fields remain identifiers, while target-day AQI and both binary labels remain outcomes. CO2, coordinates, static identifiers, and calendar-season predictors were not introduced.
+
+The seven-day maximum history requirement removed the first seven target dates for each city. The final modeling handoff contains 6,000 rows, 1,200 per city, and 71 columns. All 65 predictors are complete. Exact calendar alignment, lag origins, shifted rolling origins, finite numeric values, column roles, uniqueness, and saved-file readback were verified programmatically.
+
+| City | Modeling rows | AQI > 150 positives | Positive rate |
+| --- | ---: | ---: | ---: |
+| Dhaka | 1,200 | 563 | 46.92% |
+| Dinājpur | 1,200 | 540 | 45.00% |
+| Bherāmāra | 1,200 | 660 | 55.00% |
+| Bhola | 1,200 | 339 | 28.25% |
+| Cox’s Bāzār | 1,200 | 297 | 24.75% |
+| **Overall** | **6,000** | **2,399** | **39.98%** |
+
+The optional AQI > 100 sensitivity target contains 3,703 positives (61.72%). Notebook 03 performed no chronological split or target-driven feature selection; those decisions remain isolated to Notebook 04.
 
 ## 8. Persistence baseline, models, and tuning
 

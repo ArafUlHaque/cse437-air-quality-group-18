@@ -2,7 +2,7 @@
 
 Group 18 data-science project using hourly air-quality observations from selected Bangladeshi cities.
 
-> **Current status:** Notebooks 01 and 02 are complete and have passed their audit and preprocessing gates. Notebook 03 (feature engineering) is the next stage; modeling must not begin before its leakage checks pass.
+> **Current status:** Notebooks 01, 02, and 03 are complete and have passed their audit, preprocessing, and feature-engineering gates. Notebook 04 (modeling and tuning) is the next stage; final evaluation must wait until its chronological split, validation, model, and threshold decisions are frozen.
 
 ## Problem statement
 
@@ -60,6 +60,21 @@ The five cities were selected for complete common coverage and geographic divers
 - Reindexing produced the expected 6,035 city-date rows and inserted no missing calendar dates.
 - The final `daily_air_quality.csv` contains 24 columns, no missing values in the selected scope, and no targets or model features.
 
+
+### Verified Notebook 03 feature engineering
+
+- Notebook 03 re-verified the frozen 6,035-row, 24-column daily handoff; its SHA-256 was `460009e01b010695a256be268112aacf1ad32b1757f69ab199fd3a7611d16aca`.
+- The main target is the next calendar day's daily AQI > 150; the optional sensitivity target uses daily AQI > 100.
+- Thirteen historical signals were used: daily AQI plus the mean and maximum of six pollutants.
+- Each signal contributes target-minus-1, target-minus-2, and target-minus-7 lags plus shifted 3-day and 7-day rolling means, for 65 predictors.
+- Every rolling calculation shifts by one day first, so no predictor uses the target day.
+- The nine coverage-count columns were excluded as predictors because each is constant at 24 throughout the selected scope.
+- Seven initial target dates per city were removed because they lack the required seven-day history: 35 rows total.
+- The final `modeling_dataset.csv` contains 6,000 rows, 1,200 per city, and 71 columns: 3 identifiers, 3 outcomes, and 65 complete predictors.
+- The main target has 2,399 positive rows (39.98%); the sensitivity target has 3,703 positive rows (61.72%).
+- The feature manifest, feature summary, saved-file readback, exact date-alignment checks, and leakage assertions all passed.
+- No split, scaler, feature selection based on target performance, prediction, threshold, or model was created.
+
 ## Research questions
 
 1. How well does a model trained on Dhaka transfer to smaller Bangladeshi cities with comparable temporal coverage?
@@ -84,8 +99,8 @@ The five cities were selected for complete common coverage and geographic divers
 | --- | --- | --- | --- |
 | `01_data_audit_and_eda.ipynb` | Coverage, integrity, truncation audit, EDA, city selection | Complete | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/01_data_audit_and_eda.ipynb) |
 | `02_preprocessing.ipynb` | City/period filtering, invalid values, CO2 removal, daily aggregation, calendar completion | Complete | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/02_preprocessing.ipynb) |
-| `03_feature_engineering.ipynb` | Leakage-safe lag/rolling features and next-day target | Next | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/03_feature_engineering.ipynb) |
-| `04_modeling_and_tuning.ipynb` | Chronological split, persistence, models, tuning, transfer experiment | Pending | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/04_modeling_and_tuning.ipynb) |
+| `03_feature_engineering.ipynb` | Leakage-safe lag/rolling features and next-day target | Complete | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/03_feature_engineering.ipynb) |
+| `04_modeling_and_tuning.ipynb` | Chronological split, persistence, models, tuning, transfer experiment | Next | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/04_modeling_and_tuning.ipynb) |
 | `05_evaluation_and_error_analysis.ipynb` | Untouched-test evaluation, baseline comparison, errors, limitations | Pending | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/05_evaluation_and_error_analysis.ipynb) |
 
 Run the notebooks in numerical order. Each notebook must run top-to-bottom after its required input artifacts exist.

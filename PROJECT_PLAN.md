@@ -14,8 +14,8 @@ A successful result is not simply a high score. The final model must be compared
 | --- | --- | --- |
 | Notebook 01 — Audit and EDA | Complete | Passed |
 | Notebook 02 — Preprocessing | Complete | Passed |
-| Notebook 03 — Feature engineering | Next | Requires leakage-safe feature construction |
-| Notebook 04 — Modeling and tuning | Pending | Requires leakage-safe modeling file |
+| Notebook 03 — Feature engineering | Complete | Passed |
+| Notebook 04 — Modeling and tuning | Next | Requires chronological modeling and validation |
 | Notebook 05 — Evaluation | Pending | Requires frozen model and test period |
 
 ## 3. Locked decisions from Notebook 01
@@ -43,12 +43,17 @@ A successful result is not simply a high score. The final model must be compared
 | Secondary metrics | Precision, F1, confusion matrix, class prevalence |
 | Cross-city study | Train on Dhaka; test transfer to the four smaller cities |
 | Seasonality | Optional descriptive EDA only |
+| Historical feature signals | Daily AQI plus daily mean and maximum for six pollutants (13 signals) |
+| Individual feature lags | 1, 2, and 7 days before the target |
+| Rolling features | 3-day and 7-day means, shifted by one day before rolling |
+| Final predictor count | 65 |
+| Modeling handoff | 6,000 rows, 1,200 per city, and 71 total columns |
+| Coverage-count predictors | Excluded because all nine counts are constant at 24 |
 
 The daily maximum is an operational aggregation of the supplied hourly AQI, not a claim that the project independently recomputes an official regulatory daily AQI.
 
 ### Decisions still requiring later evidence
 
-- Final lag windows and feature count in Notebook 03
 - Exact chronological train/validation/test cut dates in Notebook 04
 - Final model families, tuning spaces, and classification threshold
 
@@ -120,25 +125,32 @@ City ranking, time-of-day, and seasonal plots are descriptive EDA, not primary r
 
 ### Notebook 03 — Feature engineering
 
-**Status:** next; requires the frozen Notebook 02 daily file.
+**Status:** complete; feature-engineering gate passed.
 
-**Input:** frozen daily clean data.
+**Input:** frozen `daily_air_quality.csv` from Notebook 02.
 
-**Required work:**
+**Completed work:**
 
-1. Construct the day-`t+1` label only after the complete calendar index exists.
-2. Require `target_date - feature_date == 1 day`.
-3. Create lags from day `t` and earlier.
-4. Shift first and roll second for rolling features.
-5. Control feature count and report rows lost to lagging.
-6. Keep city/date identifiers for grouping and evaluation but not as accidental leakage.
-7. Add programmatic leakage assertions.
+1. Re-verified the 6,035-row, 24-column daily handoff, its five-city calendar, and its SHA-256.
+2. Organized every modeling row around a target date and required the feature date to be exactly one calendar day earlier.
+3. Created the main next-day AQI > 150 target and the separately named AQI > 100 sensitivity target.
+4. Used 13 historical signals: daily AQI plus daily mean and maximum for PM10, PM2.5, CO, NO2, SO2, and O3.
+5. Created target-minus-1, target-minus-2, and target-minus-7 lags for every signal.
+6. Shifted each signal by one day before calculating 3-day and 7-day rolling means.
+7. Excluded constant coverage counts, identifiers, outcome columns, CO2, and calendar-season fields from the predictor list.
+8. Created and verified a feature manifest that records every predictor's source and historical period.
+9. Removed only the first seven target dates per city because their complete history does not exist.
+10. Ran exact lag-origin, rolling-origin, date-alignment, completeness, and leakage assertions.
 
-**Output:** `processed/modeling_dataset.csv`.
+**Verified result:** 6,000 modeling rows, 1,200 per city, 65 complete predictors, and 71 total columns. The main target contains 2,399 positive rows (39.98%); the sensitivity target contains 3,703 positive rows (61.72%). No split, scaler, target-driven feature selection, threshold, prediction, or model was created.
 
-**Acceptance:** every feature has an auditable origin no later than day `t`.
+**Outputs:** `processed/modeling_dataset.csv`, `processed/notebook_03_feature_manifest.csv`, and `processed/notebook_03_feature_summary.json`.
+
+**Acceptance:** passed. Every predictor has an auditable origin at least one day before its target, all output features are complete, and the saved-file readback checks passed.
 
 ### Notebook 04 — Modeling and tuning
+
+**Status:** next; requires the frozen Notebook 03 modeling dataset and feature manifest.
 
 **Input:** frozen modeling dataset.
 
@@ -218,7 +230,7 @@ Suggested branches: `notebook-02-preprocessing-<name>`, `notebook-03-features-<n
 
 ## 11. AI-agent handoff prompt
 
-> Read `AGENTS.md` and `PROJECT_PLAN.md` completely. Work only on Notebook 03 on a new branch. Load the frozen `daily_air_quality.csv`, construct the target for exactly day `t+1`, create strictly historical lagged features, shift before rolling, report rows lost to lagging, and add leakage assertions. Do not create data splits, tune models, or inspect future test results. Keep every code section preceded by a markdown explanation and do not invent results.
+> Read `AGENTS.md` and `PROJECT_PLAN.md` completely. Work only on Notebook 04 on a new branch. Load the frozen `modeling_dataset.csv` and feature manifest, freeze chronological train/validation/test dates, keep test labels untouched, build persistence before machine learning, fit every learned transformation on training data only, tune only with training/validation data, run the Dhaka-to-smaller-city transfer experiment, and freeze one final model and threshold. Do not perform final test evaluation or Notebook 05 error analysis. Keep every code section preceded by a markdown explanation and do not invent results.
 
 Never ask two agents to edit the same notebook at the same time. Review every generated cell and verify outputs yourself.
 
