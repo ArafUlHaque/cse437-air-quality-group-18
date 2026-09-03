@@ -1,24 +1,27 @@
 # Project Plan
 
-This is the authoritative execution plan for CSE437 Group 18. Both team members and any AI agent must read this file before changing a notebook. Faculty feedback overrides earlier ideas.
+This is the authoritative execution record for CSE437 Group 18. Faculty conditions and the locked decisions below override earlier ideas.
 
 ## 1. Goal and success condition
 
 Build a reproducible binary-classification study that predicts whether a selected city's **next calendar day** has a daily maximum supplied AQI greater than 150, using only historical information available through the current day.
 
-A successful result is not simply a high score. The final model must be compared honestly with persistence. If no model beats persistence on PR-AUC and recall during the untouched test period, that is the correct finding.
+Success is defined against persistence on identical untouched test rows. The completed evaluation found that the frozen machine-learning model exceeded persistence on both primary metrics: PR-AUC (average precision) and recall.
 
 ## 2. Project status
 
-| Stage | Status | Gate |
+| Stage | Status | Verified gate |
 | --- | --- | --- |
 | Notebook 01 — Audit and EDA | Complete | Passed |
 | Notebook 02 — Preprocessing | Complete | Passed |
 | Notebook 03 — Feature engineering | Complete | Passed |
-| Notebook 04 — Modeling and tuning | Next | Requires chronological modeling and validation |
-| Notebook 05 — Evaluation | Pending | Requires frozen model and test period |
+| Notebook 04 — Modeling and tuning | Complete | Passed |
+| Notebook 05 — Evaluation and error analysis | Complete | Passed |
+| Written report | Pending | To be completed separately |
 
-## 3. Locked decisions from Notebook 01
+The analytical pipeline is frozen. Do not retune, change the threshold, or repeat test-guided selection while preparing the report.
+
+## 3. Locked design and completed decisions
 
 | Item | Decision |
 | --- | --- |
@@ -30,34 +33,38 @@ A successful result is not simply a high score. The final model must be compared
 | Common usable dates | 1,207 per city |
 | Time unit | One row per city per calendar day |
 | Daily AQI | Maximum supplied hourly AQI when at least 18 hourly AQI values are valid |
-| CO2 | Drop; never use as a predictor |
-| Invalid pollutants | Convert negative NO2/O3 readings to missing |
-| Missing AQI | Do not impute for daily AQI or target construction |
-| Pollutant daily summaries | Mean and maximum of valid hourly readings; no imputation |
-| Coverage indicators | Preserve observed rows, observed hours, and valid-hour counts |
-| Timestamp | Use recorded clock time without shifting the day boundary; source has no offset |
-| Feature timing | Strictly lagged; no information from the label day |
-| Split | Chronological date split; never random |
-| Baseline | Persistence before ML |
-| Primary metrics | PR-AUC and recall |
-| Secondary metrics | Precision, F1, confusion matrix, class prevalence |
-| Cross-city study | Train on Dhaka; test transfer to the four smaller cities |
-| Seasonality | Optional descriptive EDA only |
-| Historical feature signals | Daily AQI plus daily mean and maximum for six pollutants (13 signals) |
-| Individual feature lags | 1, 2, and 7 days before the target |
-| Rolling features | 3-day and 7-day means, shifted by one day before rolling |
-| Final predictor count | 65 |
+| CO2 | Dropped; never used as a predictor |
+| Invalid pollutants | Negative NO2/O3 readings converted to missing |
+| Missing AQI | Not imputed for daily AQI or target construction |
+| Pollutant summaries | Daily mean and maximum of valid hourly readings; no imputation |
+| Coverage indicators | Retained for quality checks but excluded from predictors because all were constant at 24 |
+| Timestamp | Recorded clock time used without shifting the day boundary; the source has no offset |
+| Feature timing | Strictly historical; no label-day information |
+| Historical signals | Daily AQI plus daily mean and maximum for six pollutants (13 signals) |
+| Feature windows | 1-, 2-, and 7-day lags plus shifted 3-day and 7-day rolling means |
+| Predictor count | 65 |
 | Modeling handoff | 6,000 rows, 1,200 per city, and 71 total columns |
-| Coverage-count predictors | Excluded because all nine counts are constant at 24 |
+| Split | Common chronological dates; never random |
+| Train dates | 12 August 2022–28 November 2024 |
+| Validation dates | 29 November 2024–27 May 2025 |
+| Test dates | 28 May 2025–23 November 2025 |
+| Split sizes | 4,200 train, 900 validation, 900 test rows; 840/180/180 per city |
+| Source model | Dhaka-only development |
+| Transfer study | Frozen Dhaka model evaluated on the four smaller cities |
+| Baseline | Persistence built before machine learning |
+| Candidate models | Logistic Regression, Random Forest, Histogram Gradient Boosting |
+| Tuning | Four-fold expanding-window `TimeSeriesSplit` on Dhaka training data |
+| Tuning score | Mean average precision |
+| Selected model | Logistic Regression with `C=1.0` and `class_weight="balanced"` |
+| Model-selection evidence | Dhaka validation average precision, recall, then simplicity |
+| Frozen threshold | 0.008870 |
+| Threshold rule | Maximize Dhaka validation F2; break ties by recall, precision, proximity to 0.5, then threshold |
+| Final refit | 1,020 Dhaka train-plus-validation rows |
+| Primary metrics | PR-AUC (average precision) and recall |
+| Secondary metrics | Precision, F1, accuracy, confusion matrix, and prevalence |
+| Seasonality | Descriptive analysis only |
 
-The daily maximum is an operational aggregation of the supplied hourly AQI, not a claim that the project independently recomputes an official regulatory daily AQI.
-
-### Decisions still requiring later evidence
-
-- Exact chronological train/validation/test cut dates in Notebook 04
-- Final model families, tuning spaces, and classification threshold
-
-No teammate or agent may decide these silently. Record the evidence and decision in the relevant notebook.
+The daily maximum is an operational aggregation of the supplied hourly AQI. It is not a claim that the project independently recomputes an official regulatory daily AQI.
 
 ## 4. Verified dataset audit
 
@@ -66,25 +73,37 @@ Notebook 01 established:
 - 1,048,551 rows and 13 source columns in `AQI Bangladesh.csv`;
 - 30 cities in the AQI file versus 103 in `cities.csv`;
 - 73 metadata cities absent from the main file;
-- overall timestamps from 1 January 2000 to 23 November 2025;
+- timestamps from 1 January 2000 through 23 November 2025;
 - long coverage only for Dhaka, with most non-Dhaka cities beginning in August 2022;
-- no exact duplicates, duplicate city–timestamp pairs, or timestamp gaps in selected series;
-- CO2 approximately 74% missing;
+- no exact duplicates, duplicate city–timestamp pairs, or timestamp gaps in the selected series;
+- approximately 74% missing CO2;
 - one negative NO2 and eleven negative O3 readings;
-- a row count only 24 data rows below Excel's limit;
-- one contiguous block per city and an incomplete final city block.
+- a row count only 24 data rows below Excel's worksheet limit; and
+- one contiguous block per city with an incomplete final city block.
 
-This is strong evidence that the AQI CSV is an Excel-truncated export. The data must not be described as complete coverage of 103 cities. The faculty has allowed the project to proceed with the limitation documented.
+This is strong evidence that the AQI CSV is an Excel-truncated export. The data must not be described as complete coverage of 103 cities. The faculty allowed the project to proceed with this limitation documented.
 
-## 5. Research questions
+## 5. Research questions and completed evidence
 
-- **RQ1 — Transfer:** How well does a model trained on Dhaka transfer to smaller Bangladeshi cities with comparable temporal coverage?
-- **RQ2 — Baseline comparison:** Can machine-learning models outperform persistence for next-day unhealthy-air prediction?
-- **RQ3 — Predictive history:** Which strictly lagged pollutants and historical windows contribute most to next-day unhealthy-air prediction?
+### RQ1 — Transfer
 
-City ranking, time-of-day, and seasonal plots are descriptive EDA, not primary research questions. Same-time correlations must not be interpreted as next-day feature importance.
+How well does a model trained on Dhaka transfer to smaller Bangladeshi cities with comparable temporal coverage?
 
-## 6. Notebook contracts
+The four-city transfer pool achieved average precision 0.9376 and recall 0.9932. Cox’s Bāzār was the weakest transfer city, with average precision 0.6280 and recall 0.9091. These results show strong pooled warning recall but uneven probability ranking across cities.
+
+### RQ2 — Baseline comparison
+
+Can machine-learning models outperform persistence for next-day unhealthy-air prediction?
+
+Yes. On the same 900 held-out rows, Logistic Regression achieved average precision 0.9359 and recall 0.9947; persistence achieved 0.7003 and 0.8032. The model beat persistence on both primary metrics in all five cities.
+
+### RQ3 — Predictive history
+
+Which strictly lagged pollutants and historical windows contribute most to next-day unhealthy-air prediction?
+
+Validation-only permutation importance ranked `pm25_mean_lag1` first, followed by `pm25_max_roll3_mean` and `pm10_mean_lag1`. This supports recent particulate history as useful predictive information but does not establish causality.
+
+## 6. Notebook contracts and verified results
 
 ### Notebook 01 — Data audit and EDA
 
@@ -92,7 +111,7 @@ City ranking, time-of-day, and seasonal plots are descriptive EDA, not primary r
 
 **Input:** untouched `AQI Bangladesh.csv` and `cities.csv`.
 
-**Completed work:** schema and integrity audit, coverage arithmetic, metadata comparison, truncation investigation, missingness and invalid-value audit, temporal gaps, seasonality feasibility, city selection, common-period definition, target prevalence comparison, and audit-gate decisions.
+**Completed work:** schema and integrity audit, coverage arithmetic, metadata comparison, truncation investigation, missingness and invalid-value audit, temporal-gap checks, seasonality feasibility, city selection, common-period definition, target-prevalence comparison, and audit-gate decisions.
 
 **Acceptance:** the executed notebook contains no error outputs and records the selected scope and limitations.
 
@@ -102,26 +121,14 @@ City ranking, time-of-day, and seasonal plots are descriptive EDA, not primary r
 
 **Input:** raw files plus the locked Notebook 01 decisions.
 
-**Required work:**
+**Completed work:** selected-scope filtering, timestamp parsing, invalid-value correction, CO2 exclusion, daily aggregation, coverage preservation, complete-calendar reindexing, and saved-file validation.
 
-1. Load the raw AQI file without modifying it.
-2. Standardize the audited columns and parse timestamps without shifting recorded clock times.
-3. Keep only the five selected cities and timestamps from the common period.
-4. Sort by city/time and assert unique city–timestamp pairs.
-5. Drop CO2 and exclude identifiers from analytical predictors while retaining city/date identifiers.
-6. Convert negative NO2 and O3 values to missing and report the affected rows.
-7. Aggregate hourly pollutants and AQI to one row per city-date with documented statistics.
-8. Preserve observation counts and valid-value counts for every pollutant.
-9. Define daily AQI as maximum supplied hourly AQI only when at least 18 valid AQI hours exist.
-10. Reindex each city to the full common calendar so missing days remain visible.
-11. Compare hourly input and daily output row counts, missingness, and coverage.
-12. Assert exactly one row per city-date, sorted dates, five cities, and the expected common calendar.
+**Verified result:** 144,840 selected hourly rows were aggregated into 6,035 unique city-date rows with 24 columns. Every city has 1,207 dates and 24 hourly observations per date. Calendar completion inserted zero rows, and the selected scope has no missing daily values. No target, lag, split, or model was created.
 
-**Output:** `processed/daily_air_quality.csv` plus a compact preprocessing summary.
+**Outputs:**
 
-**Verified result:** 144,840 selected hourly rows were aggregated into 6,035 unique city-date rows with 24 columns. Every city has 1,207 dates and 24 hourly observations per date. Calendar completion inserted zero rows, and the selected scope contains no missing daily values. Pollutants use daily mean and maximum summaries with valid-hour counts; no imputation, target, lag, split, or model was created.
-
-**Acceptance:** exactly one unique row per city-date; no target or model features are created; every transformation is documented and reproducible.
+- `processed/daily_air_quality.csv`
+- `processed/notebook_02_preprocessing_summary.json`
 
 ### Notebook 03 — Feature engineering
 
@@ -129,120 +136,140 @@ City ranking, time-of-day, and seasonal plots are descriptive EDA, not primary r
 
 **Input:** frozen `daily_air_quality.csv` from Notebook 02.
 
-**Completed work:**
+**Completed work:** exact next-calendar-day targets, 65 historical features, manifest construction, structural-history filtering, exact lag/rolling-origin checks, leakage assertions, and saved-file readback checks.
 
-1. Re-verified the 6,035-row, 24-column daily handoff, its five-city calendar, and its SHA-256.
-2. Organized every modeling row around a target date and required the feature date to be exactly one calendar day earlier.
-3. Created the main next-day AQI > 150 target and the separately named AQI > 100 sensitivity target.
-4. Used 13 historical signals: daily AQI plus daily mean and maximum for PM10, PM2.5, CO, NO2, SO2, and O3.
-5. Created target-minus-1, target-minus-2, and target-minus-7 lags for every signal.
-6. Shifted each signal by one day before calculating 3-day and 7-day rolling means.
-7. Excluded constant coverage counts, identifiers, outcome columns, CO2, and calendar-season fields from the predictor list.
-8. Created and verified a feature manifest that records every predictor's source and historical period.
-9. Removed only the first seven target dates per city because their complete history does not exist.
-10. Ran exact lag-origin, rolling-origin, date-alignment, completeness, and leakage assertions.
+**Verified result:** 6,000 modeling rows, 1,200 per city, 65 complete predictors, and 71 total columns. The main target contains 2,399 positives (39.98%); the sensitivity target contains 3,703 positives (61.72%). Seven initial target dates per city were removed because complete seven-day history did not exist.
 
-**Verified result:** 6,000 modeling rows, 1,200 per city, 65 complete predictors, and 71 total columns. The main target contains 2,399 positive rows (39.98%); the sensitivity target contains 3,703 positive rows (61.72%). No split, scaler, target-driven feature selection, threshold, prediction, or model was created.
+**Outputs:**
 
-**Outputs:** `processed/modeling_dataset.csv`, `processed/notebook_03_feature_manifest.csv`, and `processed/notebook_03_feature_summary.json`.
-
-**Acceptance:** passed. Every predictor has an auditable origin at least one day before its target, all output features are complete, and the saved-file readback checks passed.
+- `processed/modeling_dataset.csv`
+- `processed/notebook_03_feature_manifest.csv`
+- `processed/notebook_03_feature_summary.json`
 
 ### Notebook 04 — Modeling and tuning
 
-**Status:** next; requires the frozen Notebook 03 modeling dataset and feature manifest.
+**Status:** complete; modeling and tuning gate passed.
 
-**Input:** frozen modeling dataset.
+**Input:** frozen Notebook 03 modeling dataset, feature manifest, and feature summary.
 
-**Required work:**
+**Completed work:**
 
-1. Freeze chronological train, validation, and test periods.
-2. Keep test labels untouched during selection and tuning.
-3. Build persistence first: tomorrow's class equals today's class.
-4. Add logistic regression and a small number of justified nonlinear models.
-5. Tune only with training/validation data using time-aware procedures.
-6. Address imbalance only inside training/validation.
-7. Run within-city and Dhaka-to-smaller-city transfer experiments.
-8. Freeze one final model and decision threshold without test optimization.
+1. Verified the 6,000-row, 65-feature handoff and input checksums.
+2. Froze identical chronological split dates for all five cities.
+3. Isolated Dhaka training and validation rows while withholding all test labels.
+4. Evaluated persistence before machine learning.
+5. Tuned three candidate families with four expanding time-ordered folds.
+6. Selected Logistic Regression using Dhaka validation evidence.
+7. Selected a recall-oriented F2 threshold using validation probabilities only.
+8. Calculated validation-only permutation importance.
+9. Refit the selected pipeline on 1,020 Dhaka development rows.
+10. Saved and reloaded every modeling handoff without performing test evaluation.
 
-**Outputs:** validation comparison, fitted artifacts in shared storage, frozen split dates, and feature list.
+**Validation evidence:** Logistic Regression and Random Forest both reached validation average precision 0.9853, but Logistic Regression had higher recall at the default threshold (0.9185 versus 0.8519) and was simpler. At the frozen 0.008870 threshold, Logistic Regression achieved validation recall 1.0000, precision 0.7803, and F2 0.9467.
 
-### Notebook 05 — Evaluation and error analysis
+**Outputs:**
 
-**Input:** frozen test data, persistence outputs, and final model.
+- `processed/notebook_04_split_assignments.csv`
+- `processed/notebook_04_cv_results.csv`
+- `processed/notebook_04_validation_results.csv`
+- `processed/notebook_04_validation_feature_importance.csv`
+- `processed/notebook_04_modeling_summary.json`
+- `models/notebook_04/final_model.joblib`
+- `models/notebook_04/final_model_protocol.json`
+- `figures/notebook_04/validation_pr_curves.png`
 
-**Required work:**
+### Notebook 05 — Final evaluation and error analysis
 
-1. Evaluate once on the untouched test period.
-2. Report prevalence, PR-AUC, recall, precision, F1, and confusion matrices.
-3. Compare persistence and ML on identical test rows.
-4. Report overall and per-city results.
-5. Analyze false negatives first, then severity, coverage, time, and transfer failures.
-6. State plainly whether ML beat persistence.
+**Status:** complete; final evaluation gate passed.
 
-## 7. Leakage rules
+**Input:** frozen test rows, model, feature order, split assignments, protocol, and daily coverage handoff.
+
+**Completed work:**
+
+1. Verified the frozen Notebook 04 handoff before reading test outcomes.
+2. Applied the model once without refitting, retuning, or changing the threshold.
+3. Compared Logistic Regression and persistence on identical rows.
+4. Reported overall, per-city, within-city, and transfer metrics.
+5. Analyzed false negatives first, then severity, measurement coverage, month, and transfer gaps.
+6. Saved and verified the evaluation tables, summary, and figures.
+
+**Verified result:**
+
+| Method | Average precision | Recall | Precision | F1 | Accuracy | TN | FP | FN | TP |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Logistic Regression | 0.9359 | 0.9947 | 0.3495 | 0.5173 | 0.6122 | 364 | 348 | 1 | 187 |
+| Persistence | 0.7003 | 0.8032 | 0.8207 | 0.8118 | 0.9222 | 679 | 33 | 37 | 151 |
+
+There were 188 positive days among 900 test rows (20.89%). The low frozen threshold achieved the recall objective at the cost of many false positives. Coverage counts were constant at 24 and could not distinguish correct from incorrect predictions.
+
+**Outputs:**
+
+- `processed/notebook_05_test_predictions.csv`
+- `processed/notebook_05_overall_results.csv`
+- `processed/notebook_05_per_city_results.csv`
+- `processed/notebook_05_false_negatives.csv`
+- `processed/notebook_05_monthly_results.csv`
+- `processed/notebook_05_transfer_results.csv`
+- `processed/notebook_05_coverage_diagnostic.csv`
+- `processed/notebook_05_evaluation_summary.json`
+- `figures/notebook_05/test_pr_curves.png`
+- `figures/notebook_05/test_confusion_matrices.png`
+- `figures/notebook_05/test_per_city_metrics.png`
+- `figures/notebook_05/test_monthly_recall.png`
+
+## 7. Leakage and evaluation rules
 
 For a prediction issued after day `t`:
 
 - allowed: measurements and aggregates from day `t` or earlier;
-- prohibited: any observation from day `t+1` in predictors;
+- prohibited: any target-day (`t+1`) observation in predictors;
 - prohibited: centered rolling windows;
-- prohibited: imputation fitted using validation/test future values;
+- prohibited: imputation or scaling fitted with validation/test future values;
 - prohibited: random train/test splitting;
-- prohibited: tuning a threshold on test labels;
+- prohibited: threshold tuning with test labels; and
 - prohibited: same-timestamp pollutants used to reconstruct the same timestamp's AQI label.
 
-Minimum assertions must verify unique city-dates, sorted dates, exact next-day alignment, disjoint chronological splits, and absence of future-derived feature columns.
+The final model, threshold, features, split dates, and test results are now frozen. Report writing must use the saved evidence without conducting new test-guided optimization.
 
-## 8. Recommended modeling scope
+## 8. Team workflow
 
-Keep the study small enough to explain:
+The GitHub history records contributions from [ArafUlHaque](https://github.com/ArafUlHaque) and [WhyNotInan](https://github.com/WhyNotInan). Use the commit and pull-request history as the authoritative contribution record when completing the report table. Report drafting and the final submission review remain to be assigned between the two members.
 
-1. Persistence baseline
-2. Logistic regression
-3. Random forest or a comparable bagged-tree model
-4. One gradient-boosting model available in the declared dependencies
+Notebook ownership does not remove the teammate-review requirement.
 
-Do not add deep learning unless the faculty explicitly asks for it.
+## 9. Git and Colab workflow
 
-## 9. Two-person division
-
-| Phase | Member A | Member B | Joint checkpoint |
-| --- | --- | --- | --- |
-| Audit | Own Notebook 01 | Review code and evidence | Approve audit gate |
-| Daily data | Own Notebook 02 | Independently check transformations | Freeze `daily_air_quality.csv` |
-| Features | Review daily handoff | Own Notebook 03 | Run leakage review |
-| Models | Review baseline and splits | Own Notebook 04 | Freeze model and threshold |
-| Final | Own plots/error tables | Draft methods/results | Complete Notebook 05 and report |
-
-Replace Member A/B with names before submission. Ownership does not remove the review requirement.
-
-## 10. Git and Colab workflow
-
-- Branch from current `main` and use one owner per notebook at a time.
+- Branch from current `main` and use one owner per task at a time.
 - Use `MyDrive/CSE437_air_quality_group_18` for raw data, processed handoffs, figures, and large model artifacts.
 - Save notebook outputs before committing.
-- Do not commit raw data, secrets, personal Drive paths, or large binaries.
-- Open a pull request and obtain teammate review before merging.
-- After merge, both members refresh from the new `main` before starting dependent work.
+- Do not commit raw data, generated CSV handoffs, secrets, personal Drive paths, or large model binaries.
+- Use focused commits and obtain teammate review before merging submission-critical changes.
+- Preserve the executed final notebooks and frozen evidence while drafting the report.
 
-Suggested branches: `notebook-02-preprocessing-<name>`, `notebook-03-features-<name>`, `notebook-04-models-<name>`, `notebook-05-evaluation-<name>`.
+## 10. Report handoff
 
-## 11. AI-agent handoff prompt
+The report is intentionally deferred. When work begins, it should:
 
-> Read `AGENTS.md` and `PROJECT_PLAN.md` completely. Work only on Notebook 04 on a new branch. Load the frozen `modeling_dataset.csv` and feature manifest, freeze chronological train/validation/test dates, keep test labels untouched, build persistence before machine learning, fit every learned transformation on training data only, tune only with training/validation data, run the Dhaka-to-smaller-city transfer experiment, and freeze one final model and threshold. Do not perform final test evaluation or Notebook 05 error analysis. Keep every code section preceded by a markdown explanation and do not invent results.
+1. use the exact dataset limitation and study design recorded here;
+2. describe the chronological split, Dhaka-only development, model selection, and validation-only threshold choice;
+3. lead with average precision and recall, while explaining the precision/accuracy trade-off;
+4. report pooled, within-city, and transfer results;
+5. discuss the single model false negative and large false-positive count;
+6. answer all three research questions without causal overclaiming; and
+7. retain the limitations: likely Excel truncation, possible data-generation concerns, six-month test window, Dhaka-only training, four transfer cities, and hard-score persistence PR behavior.
 
-Never ask two agents to edit the same notebook at the same time. Review every generated cell and verify outputs yourself.
+Do not change the frozen analytical decisions to improve the narrative.
 
-## 12. Definition of done
+## 11. Definition of analytical completion
 
-- All five notebooks run in order from fresh Colab runtimes using shared artifacts.
-- All charts and numbers come from executed code.
+- All five notebooks run in order and contain saved outputs.
+- Every notebook gate passed without recorded error outputs.
 - Coverage and truncation are documented explicitly.
 - Target definition and exact date alignment are visible.
 - No leakage or random temporal split exists.
-- Persistence and ML use identical test rows.
-- PR-AUC and recall lead evaluation.
-- Transfer results are reported for the four smaller cities.
-- Limitations discuss truncation, possible generation concerns, missingness, and generalizability.
-- README, report, requirements, notebook outputs, and GitHub contribution history are current.
+- Persistence and machine learning use identical test rows.
+- PR-AUC and recall lead the evaluation.
+- Transfer results are reported for all four smaller cities.
+- README, data, model, figure, project-plan, and agent documentation match the executed notebooks.
+
+The analytical repository is complete. The written report, student IDs, and any final report-figure copies are the remaining submission items.

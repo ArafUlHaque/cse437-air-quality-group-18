@@ -1,4 +1,4 @@
-# Data
+# Data and Generated Handoffs
 
 ## Source
 
@@ -26,69 +26,93 @@ Do not rename, edit, overwrite, or manually clean these files. All transformatio
 ## Verified Notebook 01 audit
 
 - Main AQI file: 1,048,551 rows, 13 source columns, 30 cities.
-- Metadata file: 103 cities.
-- Metadata cities absent from the AQI file: 73.
+- Metadata file: 103 cities; 73 metadata cities are absent from the AQI file.
 - Recorded range: 1 January 2000–23 November 2025.
 - Dhaka has 9,459 days of history; most non-Dhaka cities have 1,208 days beginning 4 August 2022.
-- The file ends 24 data rows below Excel's limit, and the final city block is incomplete.
+- The file ends 24 data rows below Excel's worksheet limit, and the final city block is incomplete.
 - The evidence strongly indicates an Excel-truncated export; the data must not be described as complete coverage of 103 cities.
 - No exact duplicates or duplicate city–timestamp pairs were found.
 - CO2 is about 74% missing; one negative NO2 and eleven negative O3 observations were found.
 
-The faculty has allowed the project to proceed with this limitation documented.
+The faculty allowed the project to proceed with this limitation documented.
 
 ## Locked analytical scope
 
 - Cities: Dhaka, Dinājpur, Bherāmāra, Bhola, and Cox’s Bāzār.
-- Main common period: 5 August 2022–23 November 2025.
-- Common usable dates: 1,207 for every selected city.
-- Daily AQI: maximum supplied hourly AQI for each city-date.
-- Minimum daily AQI coverage: 18 valid hourly observations.
+- Common period: 5 August 2022–23 November 2025.
+- Common usable dates: 1,207 per city.
+- Daily AQI: maximum supplied hourly AQI for each city-date with at least 18 valid AQI hours.
 - Main target: next calendar day's daily maximum AQI > 150.
 - CO2: excluded.
 - Negative NO2/O3: converted to missing during preprocessing.
 
-## Verified Notebook 02 output
+## Generated handoffs
 
-Notebook 02 verified the audited source checksum, applied the locked scope, removed CO2 and static identifiers, and created the daily handoff without modifying the raw files.
+Generated CSV, JSON, model, and figure artifacts are stored in the shared Drive project folder and excluded from GitHub. Regenerate them by running the notebooks in numerical order; never edit them manually.
 
-- Selected hourly rows: 144,840.
-- Daily rows: 6,035, consisting of 1,207 dates for each of five cities.
-- Daily columns: 24.
-- Pollutant summaries: daily mean and maximum of valid hourly readings.
-- Coverage fields: observed rows, observed hours, AQI valid hours, and pollutant valid hours.
-- Missing values in the selected daily output: zero.
-- Calendar rows inserted during reindexing: zero.
-- Targets and model features created: none.
+### Notebook 01 — audit evidence
 
-The generated handoffs are `processed/daily_air_quality.csv` and `processed/notebook_02_preprocessing_summary.json` in the shared Drive folder. Regenerate them by running Notebook 02; do not edit them manually.
+Directory: `processed/notebook_01_audit/`
 
+Contains the audit tables and summary used to lock the dataset scope and document the truncation limitation.
 
-## Verified Notebook 03 output
+### Notebook 02 — daily preprocessing
 
-Notebook 03 re-verified the frozen daily handoff using SHA-256 `460009e01b010695a256be268112aacf1ad32b1757f69ab199fd3a7611d16aca` and constructed leakage-safe next-day targets and historical features.
+| Artifact | Purpose |
+| --- | --- |
+| `processed/daily_air_quality.csv` | Frozen daily dataset: 6,035 rows, 24 columns |
+| `processed/notebook_02_preprocessing_summary.json` | Preprocessing rules, counts, and readback evidence |
 
-- Historical signals: daily AQI plus daily mean and maximum for six pollutants (13 total).
-- Individual lags: 1, 2, and 7 days before the target.
-- Rolling summaries: 3-day and 7-day means, always shifted by one day before rolling.
-- Predictor columns: 65, all complete after the structural history rows are removed.
-- Rows removed: 35, consisting of the first seven target dates for each city.
-- Final modeling rows: 6,000, consisting of 1,200 rows for each city.
-- Final columns: 71, consisting of 3 identifiers, 3 outcomes, and 65 predictors.
-- Main-target positives: 2,399 (39.98%).
-- Sensitivity-target positives: 3,703 (61.72%).
-- Split, scaler, prediction, threshold, and model created: none.
-- Feature and saved-file leakage checks: passed.
+Notebook 02 aggregated 144,840 selected hourly rows into 1,207 dates for each of five cities. The selected daily output has no missing values, and calendar reindexing inserted no rows.
 
-The generated handoffs are `processed/modeling_dataset.csv`, `processed/notebook_03_feature_manifest.csv`, and `processed/notebook_03_feature_summary.json` in shared Drive. Regenerate them by running Notebook 03; do not edit them manually.
+### Notebook 03 — model-ready features
+
+| Artifact | Purpose |
+| --- | --- |
+| `processed/modeling_dataset.csv` | Frozen 6,000-row model-ready dataset with 65 predictors |
+| `processed/notebook_03_feature_manifest.csv` | Source, timing, and definition for every predictor |
+| `processed/notebook_03_feature_summary.json` | Feature-engineering counts, rules, and checksums |
+
+Notebook 03 created 6,000 rows, 1,200 per city, and 71 columns: three identifiers, three outcomes, and 65 complete historical predictors. The main target contains 2,399 positives (39.98%).
+
+### Notebook 04 — model-development evidence
+
+| Artifact | Purpose |
+| --- | --- |
+| `processed/notebook_04_split_assignments.csv` | Identifier-only chronological split membership |
+| `processed/notebook_04_cv_results.csv` | Four-fold expanding-window tuning results |
+| `processed/notebook_04_validation_results.csv` | Persistence and candidate validation comparison |
+| `processed/notebook_04_validation_feature_importance.csv` | Validation-only permutation importance |
+| `processed/notebook_04_modeling_summary.json` | Frozen model-development summary and protocol references |
+
+The frozen dates produce 4,200 train, 900 validation, and 900 untouched test rows, with 840/180/180 rows per city. Test labels were not used for model or threshold selection.
+
+The fitted model and protocol are stored separately under `models/notebook_04/`; the validation precision–recall figure is under `figures/notebook_04/`.
+
+### Notebook 05 — final evaluation evidence
+
+| Artifact | Purpose |
+| --- | --- |
+| `processed/notebook_05_test_predictions.csv` | Frozen model and persistence scores/predictions on all test rows |
+| `processed/notebook_05_overall_results.csv` | Pooled model and persistence metrics |
+| `processed/notebook_05_per_city_results.csv` | Within-city and transfer-city metrics |
+| `processed/notebook_05_false_negatives.csv` | Missed unhealthy days and severity evidence |
+| `processed/notebook_05_monthly_results.csv` | Descriptive month-level test metrics |
+| `processed/notebook_05_transfer_results.csv` | Dhaka versus pooled four-city transfer comparison |
+| `processed/notebook_05_coverage_diagnostic.csv` | Coverage values by outcome/error type |
+| `processed/notebook_05_evaluation_summary.json` | Final frozen metrics, verdict, and environment record |
+
+Notebook 05 evaluated 900 rows from 28 May–23 November 2025. There were 188 positive days (20.89%). Logistic Regression achieved average precision 0.9359 and recall 0.9947; persistence achieved 0.7003 and 0.8032. The final evaluation gate passed.
 
 ## Shared folder policy
 
 - `raw/`: original files only; never edit or overwrite them.
 - `processed/notebook_01_audit/`: Notebook 01 audit tables and summary.
-- `processed/`: frozen Notebook 02 daily handoffs and Notebook 03 modeling, manifest, and summary handoffs.
-- `figures/`: reproducible figures used in notebooks and the report.
-- `models/`: fitted artifacts too large for GitHub.
-- Regenerate processed data through notebooks; do not edit it manually.
+- `processed/`: frozen daily, feature, modeling, and final-evaluation handoffs.
+- `figures/notebook_04/`: validation-only model-development figure.
+- `figures/notebook_05/`: final evaluation figures.
+- `models/notebook_04/`: frozen fitted model and machine-readable protocol.
+- Regenerate every artifact through its notebook; do not edit generated evidence manually.
 
 The repository contains placeholder `data/raw/` and `data/processed/` directories only to document the intended structure.
+
