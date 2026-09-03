@@ -100,7 +100,7 @@ The five cities were selected for complete common coverage and geographic divers
 | `01_data_audit_and_eda.ipynb` | Coverage, integrity, truncation audit, EDA, city selection | Complete | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/01_data_audit_and_eda.ipynb) |
 | `02_preprocessing.ipynb` | City/period filtering, invalid values, CO2 removal, daily aggregation, calendar completion | Complete | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/02_preprocessing.ipynb) |
 | `03_feature_engineering.ipynb` | Leakage-safe lag/rolling features and next-day target | Complete | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/03_feature_engineering.ipynb) |
-| `04_modeling_and_tuning.ipynb` | Chronological split, persistence, models, tuning, transfer experiment | Next | [Open](https://github.com/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/Notebook_04_final%202.0.ipynb) |
+| `04_modeling_and_tuning.ipynb` | Chronological split, persistence, models, tuning, transfer experiment | Complete | [Open](https://github.com/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/Notebook_04_final%202.0.ipynb) |
 | `05_evaluation_and_error_analysis.ipynb` | Untouched-test evaluation, baseline comparison, errors, limitations | Pending | [Open](https://colab.research.google.com/github/ArafUlHaque/cse437-air-quality-group-18/blob/main/notebooks/05_evaluation_and_error_analysis.ipynb) |
 
 Run the notebooks in numerical order. Each notebook must run top-to-bottom after its required input artifacts exist.
